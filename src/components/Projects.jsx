@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import Icon from "./Icon";
 import TimetablePreview from "./TimetablePreview";
+import ProjectDiagram from "./ProjectDiagram";
+import { operationalProjects } from "../data/operationalProjects";
 const APP_URL = "https://sakaka-institute-timetable.onrender.com/";
 
 function EstateDrawing({ t, language }) {
@@ -49,6 +51,36 @@ function EstateDrawing({ t, language }) {
   );
 }
 export default function Projects({ t, language }) {
+  const projects = [
+    {
+      id: "timetable",
+      title: t.projectTimetableTitle,
+      subtitle: t.projectTimetableSubtitle,
+      category: t.projectTimetableCategory,
+      description: t.projectTimetableDescription,
+      role: t.projectTimetableRole,
+      tech: t.projectTimetableTech,
+      study: t.projectTimetableCaseStudy,
+      decisions: t.projectTimetableDecisions,
+      features: t.projectTimetableFeatures,
+      url: APP_URL,
+      accessNote: t.projectAccessNote,
+    },
+    ...operationalProjects[language],
+    {
+      id: "odoo",
+      title: t.projectOdooTitle,
+      subtitle: t.projectOdooSubtitle,
+      category: t.projectOdooCategory,
+      description: t.projectOdooDescription,
+      role: t.projectOdooRole,
+      tech: t.projectOdooTech,
+      study: t.projectOdooCaseStudy,
+      decisions: t.projectOdooDecisions,
+      features: t.projectOdooFeatures,
+      accessNote: t.projectOdooNote,
+    },
+  ];
   const [project, setProject] = useState(null);
   const [actualSize, setActualSize] = useState(false);
   const [groupId, setGroupId] = useState("g3");
@@ -57,10 +89,11 @@ export default function Projects({ t, language }) {
   useEffect(() => {
     if (project && !dialog.current.open) dialog.current.showModal();
   }, [project]);
-  function openStudy(id, event) {
+  function openStudy(id, event, view = "case") {
+    if (!projects.some((item) => item.id === id)) return;
     opener.current = event.currentTarget;
     setActualSize(false);
-    setProject(id);
+    setProject({ projectId: id, view });
   }
   function closeStudy() {
     setProject(null);
@@ -69,8 +102,10 @@ export default function Projects({ t, language }) {
   function containTab(event) {
     if (event.key !== "Tab") return;
     const controls = [
-      ...dialog.current.querySelectorAll('button, a[href], [tabindex="0"]'),
-    ];
+      ...dialog.current.querySelectorAll(
+        'button:not([disabled]), a[href], select:not([disabled]), input:not([disabled]), textarea:not([disabled]), [tabindex="0"]',
+      ),
+    ].filter((element) => element.getClientRects().length > 0);
     const first = controls[0];
     const last = controls[controls.length - 1];
     if (event.shiftKey && document.activeElement === first) {
@@ -81,13 +116,10 @@ export default function Projects({ t, language }) {
       first?.focus();
     }
   }
-  const isTimetable = project === "timetable";
-  const isScreenshot = project === "screenshot";
-  const isDemo = project === "demo";
-  const study = isTimetable
-    ? t.projectTimetableCaseStudy
-    : t.projectOdooCaseStudy;
-  const title = isTimetable ? t.projectTimetableTitle : t.projectOdooTitle;
+  const activeProject = projects.find((item) => item.id === project?.projectId);
+  const isScreenshot = project?.view === "screenshot";
+  const isDemo = project?.view === "demo";
+  const study = activeProject?.study;
   const caseLabel = language === "ar" ? "دراسة المشروع" : "View case study";
   return (
     <>
@@ -117,7 +149,7 @@ export default function Projects({ t, language }) {
               <button
                 className="text-link"
                 type="button"
-                onClick={(event) => openStudy("demo", event)}
+                onClick={(event) => openStudy("timetable", event, "demo")}
               >
                 {t.demoOpenLabel}
                 <Icon name="arrow" size={16} />
@@ -125,7 +157,7 @@ export default function Projects({ t, language }) {
               <button
                 className="text-link muted-link"
                 type="button"
-                onClick={(event) => openStudy("screenshot", event)}
+                onClick={(event) => openStudy("timetable", event, "screenshot")}
               >
                 {t.viewScreenshot}
                 <Icon name="arrow" size={14} />
@@ -175,40 +207,78 @@ export default function Projects({ t, language }) {
             </p>
           </div>
         </article>
-        <article className="secondary-project">
-          <div className="secondary-copy">
-            <div className="project-meta">
-              <span className="project-index">02</span>
-              <span>{t.projectOdooCategory}</span>
-              <span className="private-badge">
-                <Icon name="lock" size={12} />
-                {t.projectPrivate}
-              </span>
-            </div>
-            <h3>{t.projectOdooTitle}</h3>
-            <p>{t.projectOdooDescription}</p>
-            <dl className="project-role">
-              <dt>{t.projectRoleLabel}</dt>
-              <dd>{t.projectOdooRole}</dd>
-            </dl>
-            <div className="tag-row">
-              {t.projectOdooTech.map((tag) => (
-                <span key={tag} dir="auto">
-                  {tag}
-                </span>
-              ))}
-            </div>
-            <button
-              className="text-link"
-              onClick={(event) => openStudy("odoo", event)}
+        <div className="project-collection">
+          {projects.slice(1).map((item, index) => (
+            <article
+              className="project-card"
+              id={"project-" + item.id}
+              aria-labelledby={"project-title-" + item.id}
+              key={item.id}
             >
-              {caseLabel}
-              <Icon name="arrow" size={18} />
-            </button>
-            <p className="access-note">{t.projectOdooNote}</p>
-          </div>
-          <EstateDrawing t={t} language={language} />
-        </article>
+              <div className="project-card-visual">
+                {item.id === "odoo" ? (
+                  <EstateDrawing t={t} language={language} />
+                ) : (
+                  <ProjectDiagram
+                    kind={item.id}
+                    caption={item.illustrationCaption}
+                    labels={item.diagramLabels}
+                  />
+                )}
+              </div>
+              <div className="project-card-copy">
+                <div className="project-meta">
+                  <span className="project-index" dir="ltr">
+                    {String(index + 2).padStart(2, "0")}
+                  </span>
+                  <span>{item.category}</span>
+                  <span className={item.url ? "live-badge" : "private-badge"}>
+                    {!item.url && <Icon name="lock" size={12} />}
+                    {item.url ? t.projectLive : t.projectPrivate}
+                  </span>
+                </div>
+                <h3 id={"project-title-" + item.id}>{item.title}</h3>
+                <p className="project-card-subtitle">{item.subtitle}</p>
+                <p className="project-card-description">{item.description}</p>
+                <dl className="project-role">
+                  <dt>{t.projectRoleLabel}</dt>
+                  <dd>{item.role}</dd>
+                </dl>
+                <div className="tag-row" aria-label={t.projectTechnology}>
+                  {item.tech.map((tag) => (
+                    <span key={tag} dir="ltr">{tag}</span>
+                  ))}
+                </div>
+                <div className="project-actions">
+                  <button
+                    className="text-link"
+                    onClick={(event) => openStudy(item.id, event)}
+                    aria-label={caseLabel + ": " + item.title}
+                  >
+                    {caseLabel}
+                    <Icon name="arrow" size={16} />
+                  </button>
+                  {item.url && (
+                    <a
+                      className="text-link muted-link"
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={t.projectOpen + ": " + item.title}
+                    >
+                      {t.projectOpen}
+                      <Icon name="arrow" size={14} />
+                    </a>
+                  )}
+                </div>
+                <p className="access-note">
+                  {item.url && <Icon name="lock" size={12} />}
+                  {item.accessNote}
+                </p>
+              </div>
+            </article>
+          ))}
+        </div>
       </section>
       <dialog
         ref={dialog}
@@ -221,7 +291,7 @@ export default function Projects({ t, language }) {
           if (event.target === event.currentTarget) dialog.current.close();
         }}
       >
-        <div className="dialog-content">
+        {activeProject && <div className="dialog-content">
           <div className="dialog-top">
             <p className="eyebrow">
               {isDemo
@@ -246,16 +316,14 @@ export default function Projects({ t, language }) {
             </button>
           </div>
           <h2 id="case-title">
-            {isScreenshot || isDemo ? t.projectTimetableTitle : title}
+            {activeProject.title}
           </h2>
           <p className="dialog-subtitle" id="case-subtitle">
             {isDemo
               ? t.demoCaption
               : isScreenshot
                 ? t.projectScreenshotCaption
-                : isTimetable
-                  ? t.projectTimetableSubtitle
-                  : t.projectOdooSubtitle}
+                : activeProject.subtitle}
           </p>
           {isDemo ? (
             <TimetablePreview
@@ -321,14 +389,11 @@ export default function Projects({ t, language }) {
               <dl className="project-role dialog-project-role">
                 <dt>{t.projectRoleLabel}</dt>
                 <dd>
-                  {isTimetable ? t.projectTimetableRole : t.projectOdooRole}
+                  {activeProject.role}
                 </dd>
                 <dt>{t.projectTechnology}</dt>
                 <dd className="tag-row">
-                  {(isTimetable
-                    ? t.projectTimetableTech
-                    : t.projectOdooTech
-                  ).map((tag) => (
+                  {activeProject.tech.map((tag) => (
                     <span key={tag} dir="auto">
                       {tag}
                     </span>
@@ -356,10 +421,7 @@ export default function Projects({ t, language }) {
               >
                 <h3 id="decisions-title">{t.decisionsLabel}</h3>
                 <div>
-                  {(isTimetable
-                    ? t.projectTimetableDecisions
-                    : t.projectOdooDecisions
-                  ).map((decision) => (
+                  {activeProject.decisions.map((decision) => (
                     <article key={decision.title}>
                       <h4>{decision.title}</h4>
                       <p>{decision.description}</p>
@@ -369,38 +431,35 @@ export default function Projects({ t, language }) {
               </section>
               <h3 className="study-features-title">{t.projectHighlights}</h3>
               <ul className="project-features">
-                {(isTimetable
-                  ? t.projectTimetableFeatures
-                  : t.projectOdooFeatures
-                ).map((feature) => (
+                {activeProject.features.map((feature) => (
                   <li key={feature}>
                     <Icon name="check" size={16} />
                     {feature}
                   </li>
                 ))}
               </ul>
-              {isTimetable ? (
+              {activeProject.url ? (
                 <>
                   <a
                     className="button button-primary"
-                    href={APP_URL}
+                    href={activeProject.url}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
                     {t.projectOpen}
                     <Icon name="arrow" size={18} />
                   </a>
-                  <p className="access-note">{t.projectAccessNote}</p>
+                  <p className="access-note">{activeProject.accessNote}</p>
                 </>
               ) : (
                 <p className="private-notice">
                   <Icon name="lock" size={18} />
-                  {t.projectOdooNote}
+                  {activeProject.accessNote}
                 </p>
               )}
             </>
           )}
-        </div>
+        </div>}
       </dialog>
     </>
   );

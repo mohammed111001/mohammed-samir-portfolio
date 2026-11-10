@@ -8,8 +8,6 @@
 
 A bilingual personal portfolio presenting my work in web development, Odoo ERP, and technical supervision. Built with React and Vite, with a responsive layout and a shared visual identity across Arabic and English.
 
-[Desktop preview](docs/screenshots/desktop-dark.png) · [Arabic mobile preview](docs/screenshots/mobile-arabic.png)
-
 ## Inside the portfolio
 
 - English and Arabic content with LTR/RTL layouts.
@@ -27,6 +25,18 @@ A bilingual personal portfolio presenting my work in web development, Odoo ERP, 
 An Arabic scheduling application for coordinating trainers, sections, rooms, and weekly teaching requirements. It supports automatic generation, conflict validation, shared saving, staff permissions, manual/Excel input, and Excel/PDF export.
 
 [Open the application](https://sakaka-institute-timetable.onrender.com/) — an approved account is required. The portfolio's generated timetable uses synthetic data and does not expose institute records.
+
+### Attendance Sheet Generator
+
+An Arabic Python/Flask application that prepares formatted XLSX attendance sheets for diploma, computer, and English programs. It supports manual or Excel input, date-based weekly sheets, approved workbook layouts, and department-specific account access.
+
+[Open the application](https://attendance-system-dn1b.onrender.com/) — an authorized account is required. The portfolio uses a clearly labeled workflow illustration, not production attendance records.
+
+### Allocation Assistant — Room, Lab & Trainer Planner
+
+A separate Arabic resource-booking application with room-capacity checks, trainer/room/cohort conflict validation, reviewable alternatives, shared saving and Excel/JSON export. Built with JavaScript, Cloudflare Workers and D1.
+
+[Open the application](https://institute-room-planner.moh-samir2572976.workers.dev/) — sign-in and owner-managed access are required.
 
 ### Real Estate Management — Odoo
 
@@ -65,6 +75,8 @@ The production output is generated in `dist/`.
 src/
   components/          Interface sections and shared components
   data/content.js     English and Arabic content
+  data/operationalProjects.js
+                      Attendance and allocation project case studies
   data/timetable-demo.json
                       Saved output from the scheduling engine
   index.css           Shared visual system and responsive styles
